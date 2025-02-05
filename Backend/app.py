@@ -1,12 +1,15 @@
 from flask import Flask, request
 from ThePlaylist import main
 from flask_cors import CORS
-import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+PORT=os.getenv('PORT')
 
 
 app=Flask(__name__)
 CORS(app)
-
 @app.route('/playlist')
 def playlist():
     keyword=request.args.get('keyword')
@@ -25,4 +28,4 @@ def playlist():
 
 
 if __name__=="__main__":
-    app.run(host='192.168.1.2',port='8080',debug=True)
+    app.run(port=PORT,debug=False)
