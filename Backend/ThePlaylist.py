@@ -1,6 +1,7 @@
 import time
 from findlist import djm as  get_songs, search_djm as search_songs
 import urllib
+import random
 
 class Node:
     def __init__(self,song=None,next=None,prev=None):
@@ -145,13 +146,24 @@ class Playlist:
 
     #     return songs
 
+def get_year_month():
+    current_time = time.localtime()
+    year = current_time.tm_year
+    month = current_time.tm_mon
+    # return random year and month from 2023 to current time
+    random_year = random.randint(2022, year)
+    random_month = random.randint(1, 12) if random_year < year else random.randint(1, month)
+    ym=str(random_year), str(random_month).zfill(2)
+    print(ym)
+    return ym
 def main(category='audio',searching=False,keyword=None):
 
     playlist=Playlist()
 
     if searching:
         playlist.add(search_songs(keywords=keyword))
-    playlist.add(get_songs(category))
+    year,month=get_year_month()
+    playlist.add(get_songs(year=year,month=month))
     songs=playlist.display()
     # song_node=playlist.get_json()
     total=playlist.len()
