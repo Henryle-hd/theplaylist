@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Heart, Shuffle, Repeat, Loader } from 'lucide-react';
+// import Image from 'next/image';
 
 interface Song {
   audio: string;
@@ -160,7 +161,22 @@ const SpotifyMusicPlayer = () => {
     }
   };
 
-  if (!currentTrack) return null;
+  if (!currentTrack) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Loader className="animate-spin w-16 h-16 mx-auto mb-4" />
+          <p className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent ">Creating your perfect playlist...</p>
+        </div>
+        {/* <Image
+        src={'/1.gif'}
+        alt="Loading..."
+        width={200}
+        height={200}
+        /> */}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row gap-4 p-4 mb-5">

@@ -22,8 +22,10 @@ body {
 
 
 .bg-pictures {
-  background-image: url('https://cdn.pixabay.com/photo/2023/02/16/03/43/music-player-7792956_960_720.jpg');
+  background-image: url('/1.gif');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
+
+/* https://cdn.pixabay.com/photo/2023/02/16/03/43/music-player-7792956_960_720.jpg */
