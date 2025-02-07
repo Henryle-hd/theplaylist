@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Heart, Shuffle, Repeat, Loader } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Heart, Shuffle, Repeat, Loader, Download, Trash2 } from 'lucide-react';
 // import Image from 'next/image';
 
 interface Song {
@@ -12,6 +12,25 @@ interface Song {
 
 interface Track {
   song: Song;
+}
+
+interface SelectedSong {
+      playlist: string[];
+      total: number;
+}
+
+const fetchSelectedSongs = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8080/selected_songs');
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching selected songs:', error);
+        return {
+          playlist: [],
+          total: 0
+        };
+      }
 }
 
 const SpotifyMusicPlayer = () => {
@@ -26,6 +45,9 @@ const SpotifyMusicPlayer = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentTotal, setCurrentTotal] = useState(0);
+  const [selectedSong, setSelectedSong] = useState<SelectedSong | null>(null);
 
   const nextTrack = useCallback(() => {
     setCurrentTrackIndex((prevIndex) => 
@@ -36,8 +58,8 @@ const SpotifyMusicPlayer = () => {
   const fetchPlaylist = (keyword?: string) => {
     setIsSearching(true);
     const url = keyword 
-      ? `http://192.168.1.2:8080/playlist?keyword=${encodeURIComponent(keyword)}`
-      : 'http://192.168.1.2:8080/playlist';
+      ? `http://127.0.0.1:8080/playlist?keyword=${encodeURIComponent(keyword)}`
+      : 'http://127.0.0.1:8080/playlist';
 
     fetch(url)
       .then(response => response.json())
@@ -60,6 +82,25 @@ const SpotifyMusicPlayer = () => {
 
   useEffect(() => {
     fetchPlaylist();
+  }, []);
+
+  useEffect(() => {
+    const fetchSelectedSongsData = async () => {
+      const selected_song = await fetchSelectedSongs();
+      setSelectedSong(selected_song);
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => 
+          prevIndex === selected_song.playlist.length - 1 ? 0 : prevIndex + 1
+        );
+        setCurrentTotal((prevTotal) => 
+          prevTotal === selected_song.total ? 0 : prevTotal + 1
+        );
+      }, 400);
+
+      return () => clearInterval(interval);
+    };
+
+    fetchSelectedSongsData();
   }, []);
 
   const currentTrack = playlist[currentTrackIndex];
@@ -161,26 +202,64 @@ const SpotifyMusicPlayer = () => {
     }
   };
 
+  const handleDownload = (track: Track) => {
+    window.open(track.song.audio, '_blank');
+  };
+
+  const handleDelete = (index: number) => {
+    const newPlaylist = [...playlist];
+    newPlaylist.splice(index, 1);
+    setPlaylist(newPlaylist);
+    if (currentTrackIndex === index) {
+      setCurrentTrackIndex(0);
+    }
+  };
+
   if (!currentTrack) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Loader className="animate-spin w-16 h-16 mx-auto mb-4" />
           <p className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent ">Creating your perfect playlist...</p>
+          <div className="mt-4">
+            <p className="text-lg font-semibold">
+              {selectedSong?.playlist[currentIndex]}
+            </p>
+            <p className="text-sm text-gray-500">
+              {currentTotal}
+              {/* {selectedSong?.total} */}
+            </p>
+          </div>
         </div>
-        {/* <Image
-        src={'/1.gif'}
-        alt="Loading..."
-        width={200}
-        height={200}
-        /> */}
       </div>
     );
-  }
-
+  }  
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 mb-5">
-      <div className="w-[400px] mt-10 md:mt-0 md:w-[600px] bg-gradient-to-b from-[#ff5480] to-black text-white p-6 rounded-xl shadow-2xl" style={{ backgroundImage: `url(${currentTrack.song.image})`,
+    <div className='mt-10 md:mt-0 flex flex-col items-center justify-center md:gap-4'>
+      <div className="flex items-center gap-2 w-[90%] md:w-[50%]">
+          <input
+            type="text"
+            placeholder="Search songs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 px-4 py-2 rounded-lg bg-[#ffffff1a] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff5480] h-12 md:h-14"
+          />
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2 bg-[#ff5480] rounded-lg hover:bg-[#ff5480]/80 transition-colors  h-12 md:h-14"
+            disabled={isSearching}
+          >
+            {isSearching ? (
+              <Loader className="animate-spin" size={20} />
+            ) : (
+              'Update'
+            )}
+          </button>
+        </div>
+    
+    <div className="flex flex-col md:flex-row gap-4 p-4 mb-0 h-[80vh] md:h-[72vh]">
+      
+      <div className="w-[99%] mt-2 md:mt-0 md:w-[550px] bg-gradient-to-b  from-[#ff5480] to-black text-white p-6 rounded-xl shadow-2xl" style={{ backgroundImage: `url(${currentTrack.song.image})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -230,10 +309,10 @@ const SpotifyMusicPlayer = () => {
             }}
           />        </div>
 
-        <div className="flex justify-between items-center mt-6">
+        <div className="flex justify-around items-center mt-">
           <button 
             onClick={() => setIsShuffle(!isShuffle)}
-            className={`${isShuffle ? 'text-[#ff5480]' : 'text-white'}`}
+            className={`${isShuffle ? 'text-[#ff5480]' : 'text-[#ffb31a]'}`}
             aria-label="Shuffle"
           >
             <Shuffle size={20} />
@@ -241,7 +320,7 @@ const SpotifyMusicPlayer = () => {
 
           <button 
             onClick={prevTrack} 
-            className="hover:bg-gray-700 p-2 rounded-full"
+            className="hover:bg-gray-700 p-2 rounded-full bg-white text-black hover:text-white"
             aria-label="Previous track"
           >
             <SkipBack size={24} />
@@ -263,7 +342,7 @@ const SpotifyMusicPlayer = () => {
 
           <button 
             onClick={nextTrack} 
-            className="hover:bg-gray-700 p-2 rounded-full"
+            className="hover:bg-gray-700 p-2 rounded-full bg-white text-black hover:text-white"
             aria-label="Next track"
           >
             <SkipForward size={24} />
@@ -271,7 +350,7 @@ const SpotifyMusicPlayer = () => {
 
           <button 
             onClick={() => setIsRepeat(!isRepeat)}
-            className={`${isRepeat ? 'text-[#ff5480]' : 'text-white'}`}
+            className={`${isRepeat ? 'text-[#ff5480]' : 'text-[#ffb31a]'}`}
             aria-label="Repeat"
           >
             <Repeat size={20} />
@@ -279,52 +358,53 @@ const SpotifyMusicPlayer = () => {
         </div>
       </div>
 
-      <div className="bg-[#2e0b01bb] text-white p-6 rounded-xl max-h-[600px] overflow-y-auto ">
-        <div className="flex items-center mb-4 gap-2">
-          <input
-            type="text"
-            placeholder="Search songs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 rounded-lg bg-[#ffffff1a] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff5480]"
-          />
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 bg-[#ff5480] rounded-lg hover:bg-[#ff5480]/80 transition-colors"
-            disabled={isSearching}
-          >
-            {isSearching ? (
-              <Loader className="animate-spin" size={20} />
-            ) : (
-              'Update'
-            )}
-          </button>
-        </div>
+      <div className="bg-[#2e0b01bb] text-white p-6 rounded-xl overflow-y-auto ">
         <h3 className="text-xl font-bold mb-4">Playlist 💖</h3>
         {playlist.map((track, index) => (
           <div 
             key={index}
-            className={`flex items-center p-2 hover:bg-[#ff5480]/20 cursor-pointer rounded ${
+            className={`flex items-center p-2 hover:bg-[#ff5480]/20 rounded ${
               currentTrackIndex === index ? 'bg-[#ff5480]/30' : ''
             }`}
-            onClick={() => {
-              setCurrentTrackIndex(index);
-            }}
           >
-            <div className="w-10 h-10 bg-gray-700 rounded mr-3">
-                <img src={track.song.image} alt="o" className='rounded-md' />
+            <div 
+              className="flex-1 flex items-center cursor-pointer"
+              onClick={() => setCurrentTrackIndex(index)}
+            >
+              <div className="w-10 h-10 bg-gray-700 rounded mr-3">
+                  <img src={track.song.image} alt="o" className='rounded-md' />
+              </div>
+              <div>
+                <p className="font-medium">{track.song.title}</p>
+                <p className="text-sm text-gray-400">Artist Name</p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">{track.song.title}</p>
-              <p className="text-sm text-gray-400">Artist Name</p>
+            <div className="flex items-center gap-2">
+              {currentTrackIndex === index && isLoading ? (
+                <Loader className="animate-spin" size={16} />
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleDownload(track)}
+                    className="p-2 hover:bg-[#ff5480]/20 rounded"
+                    aria-label="Download"
+                  >
+                    <Download size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="p-2 hover:bg-[#ff5480]/20 rounded"
+                    aria-label="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </>
+              )}
             </div>
-            {currentTrackIndex === index && isLoading && (
-              <Loader className="animate-spin ml-auto" size={16} />
-            )}
           </div>
         ))}
       </div>
     </div>
+    </div>
   );
-};
-export default SpotifyMusicPlayer;
+};export default SpotifyMusicPlayer;

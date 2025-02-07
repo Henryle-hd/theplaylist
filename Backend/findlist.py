@@ -3,15 +3,13 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 import os
 from dotenv import load_dotenv
+from ThePlaylist import ply
 
 load_dotenv()
-
 CATEGORY_URL=os.getenv('CATEGORY_URL')
 YEAR_URL=os.getenv('YEAR_URL')
 KEYWORDS_URL=os.getenv('KEYWORDS_URL')
-
 CATEGOTY=['dj-mixes','new-audio','nyimbo-za-dini','audio','instrumentals']
-
 
 session = requests.Session()
 session.headers.update({
@@ -39,6 +37,26 @@ def get_songs(category:str='audio'):
 def cmzk(category:str='audio'):
     pass
 
+def init_list(year:str,month:str):
+    try:
+        response=session.get(f'{YEAR_URL}/{year}/{month}',timeout=10)
+        response.raise_for_status()
+        soup=BeautifulSoup(response.content, 'html.parser')
+        articles=soup.find_all('article')
+        titles=[]
+        for article in articles:
+            title=article.find('h2').text.replace('|','').replace('VIDEO','').replace('AUDIO','').replace('Download','').strip()
+            titles.append(title)
+        return {
+            'total':len(titles),
+            'playlist':titles
+        }
+    except Exception as e:
+        # print("init list error",e)
+        return {}
+
+
+
 def djm(year:str,month:str)->list:
     try:
         response=session.get(f'{YEAR_URL}/{year}/{month}',timeout=10)
@@ -48,16 +66,35 @@ def djm(year:str,month:str)->list:
         songs=[]
         for article in articles:
             title=article.find('h2').text.replace('|','').replace('AUDIO','').replace('Download','').strip()
+            # category=article.find('li',class_='cat-item').find()
+            url=article.find('a')['href']
             if 'VIDEO' in title:
                 continue
-            song=specific_song(title,year,month)
+            # print(title,url)
+            song=specific_song(url)
             if song:
                 songs.append(song)
+                # ply.add_at_end(song)
             else:
                 continue
-        return songs
+        ply.add(songs)
     except Exception as e:
-        return []
+        # print("djm error",e)
+        return {}
+
+def specific_song(url:str)->dict:
+
+    try:
+        response=session.get(url,timeout=10)
+        response.raise_for_status()
+        soup=BeautifulSoup(response.content, 'html.parser')
+        title=soup.find('h1').text.replace('AUDIO','').replace('|','').replace('Download','').strip()
+        image_url=soup.find('img',class_='attachment-post-thumbnail')['src']
+        audio_url=soup.find('div', class_='entry-content').find('a')['href']
+        return {'title':title ,'audio': audio_url,'image': image_url,}
+    except Exception as e:
+        # print('specific_song error',e)
+        return {}
 
 
 def fetch_page(url):
@@ -72,21 +109,26 @@ def fetch_page(url):
 def process_article(article):
     title = article.find('h2').text.replace('|', '').replace('Download', '').strip()
     if 'AUDIO' in title:
-        title = title.replace('AUDIO', '').strip()
-        if article.find('p') and ']' in article.find('p').text:
-            audio_url = article.find('p').text.split(']')[-1].strip()
-            image_url = article.find('img')['src']
-            if audio_url and image_url:
-                return {'title': title, 'audio': audio_url, 'image': image_url}
+        # title = title.replace('AUDIO', '').strip()
+        # if article.find('p') and ']' in article.find('p').text:
+            # audio_url = article.find('p').text.split(']')[-1].strip()
+            # image_url = article.find('img')['src']
+            # if audio_url and image_url:
+                # return {'title': title, 'audio': audio_url, 'image': image_url}
+        url=article.find('a')['href']
+        # print(url)
+        song=specific_song(url)
+        if song:
+            return song
     return None
 
 def search_djm(keywords: str = 'diamond') -> list:
+    keywords = keywords.replace(' ', '+')
     url = f'{KEYWORDS_URL}={keywords.replace(" ", "+")}'
+    print(url)
     page_content = fetch_page(url)
-
     if not page_content:
         return []
-
     soup = BeautifulSoup(page_content, 'html.parser')
     articles = soup.find_all('article')
 
@@ -94,27 +136,17 @@ def search_djm(keywords: str = 'diamond') -> list:
     with ThreadPoolExecutor() as executor:
         results = executor.map(process_article, articles)
         songs = [song for song in results if song]  # Filter out None values
+    # return songs
+    ply.add(songs)
 
-    return songs
 
-def specific_song(title:str,year:str,month:str)->dict:
-    url=f'{YEAR_URL}/{year}/{month}/'+title.replace('.','').replace(' – ','-').replace(' ','-').lower()+'.html'
-    try:
-        response=session.get(url,timeout=10)
-        soup=BeautifulSoup(response.content, 'html.parser')
-        image_url=soup.find('img',class_='attachment-post-thumbnail')['src']
-        audio_url=soup.find('div', class_='entry-content').find('a')['href']
-        return {'title':title ,'audio': audio_url,'image': image_url,}
-    except Exception as e:
-        return {}
 
 
 
 def main():
     pass
-    # print(djm('audio'))
-    # print(search_djm('diamond'))
-    # print(specific_song('Phina X ICent – Wanita'))
+    # print(init_list('2025','02'))
+    # print(search_djm('prof'))
 
 
 if __name__ == "__main__":

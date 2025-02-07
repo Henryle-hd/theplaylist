@@ -1,5 +1,6 @@
 // import NavBar from "@/components/NavBar";
 import SpotifyMusicPlayer from "@/components/Player";
+import SocialMedia from "@/components/SocialMedia";
 
 export default function Page(){
   return(
@@ -15,6 +16,7 @@ export default function Page(){
         </h1> */}
       {/* </div> */}
     <SpotifyMusicPlayer />
+    <SocialMedia />
     </div>
     </div>
 
