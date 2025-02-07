@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from findlist import djm as  get_init_songs, search_djm as search_songs,init_list
 import time
 import random
-from ThePlaylist import ply
+from ThePlaylist import ply,sel
 
 load_dotenv()
 PORT=os.getenv('PORT')
@@ -32,13 +32,17 @@ def playlist():
     # print(f"Keyword received: {keyword}")
     if keyword:
         search_songs(keywords=keyword)
+        return {
+            "total":sel.len(),
+            'playlist': sel.display()
+        }
     else:
         year,month=get_year_month()
         get_init_songs(year=year,month=month)
-    return {
-        'total': ply.len(),
-        'playlist': ply.display()
-    }
+        return {
+            'total': ply.len(),
+            'playlist': ply.display()
+        }
 
 @app.route('/selected_songs')
 def selected_songs():

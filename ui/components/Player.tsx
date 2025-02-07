@@ -18,10 +18,10 @@ interface SelectedSong {
       playlist: string[];
       total: number;
 }
-
+const baseUrl=process.env.NEXT_PUBLIC_API_URL as string
 const fetchSelectedSongs = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8080/selected_songs');
+        const response = await fetch(`${baseUrl}/selected_songs`);
         const data = await response.json();
         return data;
       } catch (error) {
@@ -58,8 +58,8 @@ const SpotifyMusicPlayer = () => {
   const fetchPlaylist = (keyword?: string) => {
     setIsSearching(true);
     const url = keyword 
-      ? `http://127.0.0.1:8080/playlist?keyword=${encodeURIComponent(keyword)}`
-      : 'http://127.0.0.1:8080/playlist';
+      ? `${baseUrl}/playlist?keyword=${encodeURIComponent(keyword)}`
+      : `${baseUrl}/playlist`;
 
     fetch(url)
       .then(response => response.json())

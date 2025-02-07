@@ -3,7 +3,7 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 import os
 from dotenv import load_dotenv
-from ThePlaylist import ply
+from ThePlaylist import ply,sel
 
 load_dotenv()
 CATEGORY_URL=os.getenv('CATEGORY_URL')
@@ -137,7 +137,7 @@ def search_djm(keywords: str = 'diamond') -> list:
         results = executor.map(process_article, articles)
         songs = [song for song in results if song]  # Filter out None values
     # return songs
-    ply.add(songs)
+    sel.add_t(songs)
 
 
 
