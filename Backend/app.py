@@ -9,6 +9,8 @@ from ThePlaylist import ply
 
 load_dotenv()
 PORT=os.getenv('PORT')
+HOST=os.getenv('HOST')
+
 app=Flask(__name__)
 CORS(app)
 
@@ -48,4 +50,4 @@ def selected_songs():
 
 
 if __name__=="__main__":
-    app.run(port=PORT,debug=True)
+    app.run(host=HOST,port=PORT,debug=False)
