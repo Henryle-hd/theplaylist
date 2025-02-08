@@ -25,6 +25,7 @@ def get_year_month():
     # print(ym)
     return ym
 
+counter = 0
 year,month=get_year_month()
 @app.route('/playlist')
 def playlist():
@@ -32,16 +33,13 @@ def playlist():
     # print(f"Keyword received: {keyword}")
     if keyword:
         search_songs(keywords=keyword)
-        return {
-            "total":sel.len(),
-            'playlist': sel.display()
-        }
     else:
+        counter+=1
         year,month=get_year_month()
-        get_init_songs(year=year,month=month)
-        return {
-            'total': ply.len(),
-            'playlist': ply.display()
+        get_init_songs(year=year,month=month,counter=counter)
+    return {
+        'total': ply.len(),
+        'playlist': ply.display().reverse(),
         }
 
 @app.route('/selected_songs')
@@ -54,4 +52,4 @@ def selected_songs():
 
 
 if __name__=="__main__":
-    app.run(host=HOST,port=PORT,debug=False)
+    app.run(host=HOST,port=PORT,debug=True)

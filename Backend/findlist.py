@@ -3,7 +3,7 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 import os
 from dotenv import load_dotenv
-from ThePlaylist import ply,sel
+from ThePlaylist import ply
 
 load_dotenv()
 CATEGORY_URL=os.getenv('CATEGORY_URL')
@@ -56,8 +56,7 @@ def init_list(year:str,month:str):
         return {}
 
 
-
-def djm(year:str,month:str)->list:
+def djm(year:str,month:str, counter:int=1)->list:
     try:
         response=session.get(f'{YEAR_URL}/{year}/{month}',timeout=10)
         response.raise_for_status()
@@ -65,11 +64,15 @@ def djm(year:str,month:str)->list:
         articles=soup.find_all('article')
         songs=[]
         for article in articles:
-            title=article.find('h2').text.replace('|','').replace('AUDIO','').replace('Download','').strip()
-            # category=article.find('li',class_='cat-item').find()
             url=article.find('a')['href']
-            if 'VIDEO' in title:
-                continue
+            if counter>0:
+                category=article.find('li',class_='cat-item').find().text.strip()
+                if category =='VIDEO':
+                    continue
+            else:
+                title=article.find('h2').text.replace('|','').replace('AUDIO','').replace('Download','').strip()
+                if 'VIDEO' in title:
+                    continue
             # print(title,url)
             song=specific_song(url)
             if song:
@@ -107,14 +110,9 @@ def fetch_page(url):
         return None
 
 def process_article(article):
-    title = article.find('h2').text.replace('|', '').replace('Download', '').strip()
-    if 'AUDIO' in title:
-        # title = title.replace('AUDIO', '').strip()
-        # if article.find('p') and ']' in article.find('p').text:
-            # audio_url = article.find('p').text.split(']')[-1].strip()
-            # image_url = article.find('img')['src']
-            # if audio_url and image_url:
-                # return {'title': title, 'audio': audio_url, 'image': image_url}
+    # title = article.find('h2').text.replace('|', '').replace('Download', '').strip()
+    category=article.find('li',class_='cat-item').find().text.strip()
+    if category=='AUDIO' or category=='DJ MIX' or category=='INSTRUMENTALS':
         url=article.find('a')['href']
         # print(url)
         song=specific_song(url)
@@ -137,15 +135,13 @@ def search_djm(keywords: str = 'diamond') -> list:
         results = executor.map(process_article, articles)
         songs = [song for song in results if song]  # Filter out None values
     # return songs
-    sel.add_t(songs)
-
-
-
+    ply.add_t(songs)
 
 
 def main():
     pass
     # print(init_list('2025','02'))
+    # print(djm('2025','02'))
     # print(search_djm('prof'))
 
 
