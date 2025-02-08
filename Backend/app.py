@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from findlist import djm as  get_init_songs, search_djm as search_songs,init_list
 import time
 import random
-from ThePlaylist import ply,sel
+from ThePlaylist import ply
 
 load_dotenv()
 PORT=os.getenv('PORT')
