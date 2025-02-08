@@ -37,7 +37,7 @@ def playlist():
         get_init_songs(year=year,month=month)
     return {
         'total': ply.len(),
-        'playlist': ply.display()
+        'playlist':list(reversed(ply.display()))
         }
 
 @app.route('/selected_songs')
