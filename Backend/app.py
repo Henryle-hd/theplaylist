@@ -6,6 +6,7 @@ from findlist import djm as  get_init_songs, search_djm as search_songs,init_lis
 import time
 import random
 from ThePlaylist import ply
+from random import shuffle
 
 load_dotenv()
 PORT=os.getenv('PORT')
@@ -36,6 +37,7 @@ def playlist():
     else:
         year,month=get_year_month()
         get_init_songs(year=year,month=month)
+        shuffle(ply.display())
     return {
         'total': ply.len(),
         'playlist':ply.display()
@@ -51,4 +53,4 @@ def selected_songs():
 
 
 if __name__=="__main__":
-    app.run(host=HOST,port=PORT,debug=True)
+    app.run(host=HOST,port=PORT,debug=False)

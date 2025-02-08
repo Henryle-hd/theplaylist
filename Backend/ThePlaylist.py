@@ -1,4 +1,3 @@
-from random import shuffle
 class Node:
     def __init__(self,song=None,next=None,prev=None):
         self.song=song
@@ -59,7 +58,6 @@ class Playlist:
         while current:
             songs.append(current.song)
             current=current.next
-            shuffle((songs))
         return songs
 
 ply=Playlist()
