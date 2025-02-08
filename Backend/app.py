@@ -29,6 +29,7 @@ counter = 0
 year,month=get_year_month()
 @app.route('/playlist')
 def playlist():
+    global counter
     keyword = request.args.get('keyword')
     # print(f"Keyword received: {keyword}")
     if keyword:
@@ -39,7 +40,7 @@ def playlist():
         get_init_songs(year=year,month=month,counter=counter)
     return {
         'total': ply.len(),
-        'playlist': ply.display().reverse(),
+        'playlist':list(reversed(ply.display())),
         }
 
 @app.route('/selected_songs')
