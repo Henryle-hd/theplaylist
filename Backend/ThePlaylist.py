@@ -1,3 +1,4 @@
+from random import shuffle
 class Node:
     def __init__(self,song=None,next=None,prev=None):
         self.song=song
@@ -37,6 +38,18 @@ class Playlist:
             count+=1
             current=current.next
         return count
+    
+    def remove_at_end(self):
+        if self.head is None:
+            return
+        current=self.head
+        while current:
+            if current.next:
+                current.next=current.next.next
+                if current.next:
+                    current.next.prev=current
+                break
+            current=current.next
 
     def display(self):
         if self.head is None:
@@ -46,6 +59,19 @@ class Playlist:
         while current:
             songs.append(current.song)
             current=current.next
+            shuffle((songs))
         return songs
 
 ply=Playlist()
+
+def main():
+    # ply.add(['Song1','Song2','Song3'])
+    # ply.add_at_start('Song0')
+    # ply.__init__()
+    # ply.add_at_start('Song0')
+    # print(ply.display())
+    # print(ply.len())
+    pass
+
+if __name__ == "__main__":
+    main()

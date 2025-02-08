@@ -31,13 +31,14 @@ def playlist():
     keyword = request.args.get('keyword')
     # print(f"Keyword received: {keyword}")
     if keyword:
+        ply.__init__()
         search_songs(keywords=keyword)
     else:
         year,month=get_year_month()
         get_init_songs(year=year,month=month)
     return {
         'total': ply.len(),
-        'playlist':list(reversed(ply.display()))
+        'playlist':ply.display()
         }
 
 @app.route('/selected_songs')
