@@ -7,6 +7,7 @@ import time
 import random
 from ThePlaylist import ply
 from random import shuffle
+import threading
 
 load_dotenv()
 PORT=os.getenv('PORT')
@@ -26,18 +27,34 @@ def get_year_month():
     # print(ym)
     return ym
 
+
+def change_init_list():
+    global year,month
+    while True:
+        ply.__init__()
+        time.sleep(30)
+        year,month=get_year_month()
+        get_init_songs(year=year,month=month)
+#init
 year,month=get_year_month()
+# get_init_songs(year=year,month=month)
+#background
+# threading.Thread(target=change_init_list,daemon=True).start()
+
+
 @app.route('/playlist')
 def playlist():
+    global year,month
     keyword = request.args.get('keyword')
     # print(f"Keyword received: {keyword}")
     if keyword:
         ply.__init__()
         search_songs(keywords=keyword)
     else:
-        year,month=get_year_month()
-        get_init_songs(year=year,month=month)
-        shuffle(ply.display())
+        if ply.len()<1:
+            year,month=get_year_month()
+            get_init_songs(year=year,month=month)
+    shuffle(ply.display())
     return {
         'total': ply.len(),
         'playlist':ply.display()

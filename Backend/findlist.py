@@ -56,40 +56,42 @@ def init_list(year:str,month:str):
         return {}
 
 
-count = 0
+count = 1
 def djm(year:str,month:str)->list:
     global count
     print("Called djm: ",count)
     try:
-        response=session.get(f'{YEAR_URL}/{year}/{month}',timeout=10)
-        response.raise_for_status()
-        soup=BeautifulSoup(response.content, 'html.parser')
-        articles=soup.find_all('article')
-        songs=[]
-        for article in articles:
-            url=article.find('a')['href']
-            if count>0:
-                category=article.find('li')
-                if category:
-                    category=category.text.lower().strip()
-                    if category=='video':
+        p_n=find_page_number(f'{YEAR_URL}/{year}/{month}')
+        for i in range(1,p_n+1):
+            page_content=fetch_page(f'{YEAR_URL}/{year}/{month}/page/{i}')
+            print(f'\npage {i} of {p_n}')
+            soup=BeautifulSoup(page_content, 'html.parser')
+            articles=soup.find_all('article')
+            songs=[]
+            for article in articles:
+                url=article.find('a')['href']
+                if i==p_n:
+                    title=article.find('h2').text.replace('|','').replace('AUDIO','').replace('Download','').strip()
+                    if 'VIDEO' in title:
                         continue
                 else:
+                    category=article.find('li')
+                    if category:
+                        category=category.text.lower().strip()
+                        if category=='video':
+                            continue
+                    else:
+                        continue
+                # print(title,url)
+                # print(url)
+                song=specific_song(url)
+                if song:
+                    songs.append(song)
+                    # ply.add_at_end(song)
+                    print(song['title'])
+                else:
                     continue
-            else:
-                title=article.find('h2').text.replace('|','').replace('AUDIO','').replace('Download','').strip()
-                if 'VIDEO' in title:
-                    continue
-            # print(title,url)
-            # print(url)
-            song=specific_song(url)
-            if song:
-                songs.append(song)
-                # ply.add_at_end(song)
-                # print(song['title'])
-            else:
-                continue
-        ply.add(songs)
+            ply.add(songs)
         count+=1
     except Exception as e:
         # print("djm error",e)
@@ -139,35 +141,51 @@ def process_article(article):
                 return song
     return None
 
-def search_djm(keywords: str = 'diamond') -> list:
+def search_djm(keywords: str = 'diamond',page:int=1) -> list:
     keywords = keywords.replace(' ', '+')
-    url = f'{KEYWORDS_URL}={keywords.replace(" ", "+")}'
-    print(url)
-    page_content = fetch_page(url)
-    if not page_content:
-        return []
-    soup = BeautifulSoup(page_content, 'html.parser')
-    articles = soup.find_all('article')
+    # url = f'{KEYWORDS_URL}={keywords.replace(" ", "+")}'
+    url = f'{KEYWORDS_URL}/{page}?s={keywords}'
+    pg_n=find_page_number(url)
+    for i in range(1,pg_n+1):
+        url=f'{KEYWORDS_URL}/{i}?s={keywords}'
+        print(url)
+        page_content = fetch_page(url)
+        if not page_content:
+            return []
+        soup = BeautifulSoup(page_content, 'html.parser')
+        
+        articles = soup.find_all('article')
 
-    songs = []
-    with ThreadPoolExecutor() as executor:
-        results = executor.map(process_article, articles)
-        songs = [song for song in results if song]  # Filter out None values
-        # print(songs)
-    # return songs
-    ply.add_t(songs)
+        songs = []
+        with ThreadPoolExecutor() as executor:
+            results = executor.map(process_article, articles)
+            songs = [song for song in results if song]  # Filter out None values
+            # print(songs)
+        # return songs
+        ply.add_t(songs)
 
 
 
-def find_page_number()->int:
-    pass
+def find_page_number(url)->int:
+    page_content=fetch_page(url)
+    soup=BeautifulSoup(page_content, 'html.parser')
+    page=soup.find('ul',class_='page-numbers')
+    if page:
+        page_number=page.find_all('li')[-2].text
+        if page_number.isdigit():
+            num=int(page_number)
+            if num<5:
+                return num
+            else:
+                return 4
 
 def main():
     pass
     # print(init_list('2025','02'))
-    while count<5:
-        djm('2025','02')
-    # print(search_djm('prof'))
+    # while count<5:
+    # djm('2025','02')
+    # print(search_djm('DIAMOND'))
+
 
 
 if __name__ == "__main__":
