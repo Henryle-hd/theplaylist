@@ -62,12 +62,13 @@ def djm(year:str,month:str)->list:
     print("Called djm: ",count)
     try:
         p_n=find_page_number(f'{YEAR_URL}/{year}/{month}')
+        songs=[]
         for i in range(1,p_n+1):
             page_content=fetch_page(f'{YEAR_URL}/{year}/{month}/page/{i}')
-            print(f'\npage {i} of {p_n}')
+            # print(f'\npage {i} of {p_n}')
             soup=BeautifulSoup(page_content, 'html.parser')
             articles=soup.find_all('article')
-            songs=[]
+            
             for article in articles:
                 url=article.find('a')['href']
                 if i==p_n:
@@ -88,10 +89,13 @@ def djm(year:str,month:str)->list:
                 if song:
                     songs.append(song)
                     # ply.add_at_end(song)
-                    print(song['title'])
+                    # print(song['title'])
                 else:
                     continue
-            ply.add(songs)
+        ply.__init__()
+        print("Cleaned")
+        ply.add(songs)
+        print("Added!")
         count+=1
     except Exception as e:
         # print("djm error",e)
@@ -137,7 +141,7 @@ def process_article(article):
             # print(url)
             song=specific_song(url)
             if song:
-                print(song)
+                # print(song)
                 return song
     return None
 

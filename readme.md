@@ -1,18 +1,17 @@
-
 # 🎵 The Playlist
 
-A fun and groovy music streaming app that lets you vibe to your favorite tunes for free! Built with love for music lovers.
+🎵 Your ultimate music companion! A sleek streaming app that automatically curates fresh tunes from the web, featuring a stunning Spotify-inspired player with dynamic backgrounds, smart playlist management, and seamless music discovery. Search, stream, shuffle, and download your favorite tracks - all in one beautiful interface that updates in real-time!
 
-## What's Cool About It? 
+## Features
 
-- 🎧 Sleek music player
-- 🔍 Search and discover new tracks
-- 🎨 Beautiful gradient UI with album art backgrounds  
-- ⚡ Fast Python backend that scrapes fresh music
-- 🔄 Auto-updates with latest songs
-- 💝 Like your favorite tracks
-- 🎮 Full playback controls (shuffle, repeat, skip)
+- 🎧 Beautiful music player with gradient UI
+- 🔍 Search any song
+- 🎨 Dynamic backgrounds from album art
+- ⚡ Auto-refreshing song list
+- 💝 Like favorite tracks
+- 🎮 Full playback controls
+- ⬇️ Download songs
 
-Made with React, Python Flask and lots of ❤️
+Made with Next.js, TypeScript, Python Flask and ❤️
 
-Just hit play and enjoy the music! 🎶
+Just hit play! 🎶

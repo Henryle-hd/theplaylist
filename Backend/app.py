@@ -31,15 +31,15 @@ def get_year_month():
 def change_init_list():
     global year,month
     while True:
-        ply.__init__()
-        time.sleep(30)
+        time.sleep(86400)
         year,month=get_year_month()
         get_init_songs(year=year,month=month)
 #init
 year,month=get_year_month()
-# get_init_songs(year=year,month=month)
+get_init_songs(year=year,month=month)
 #background
-# threading.Thread(target=change_init_list,daemon=True).start()
+update_list_thread=threading.Thread(target=change_init_list,daemon=True)
+update_list_thread.start()
 
 
 @app.route('/playlist')
@@ -52,9 +52,10 @@ def playlist():
         search_songs(keywords=keyword)
     else:
         if ply.len()<1:
-            year,month=get_year_month()
-            get_init_songs(year=year,month=month)
-    shuffle(ply.display())
+            # year,month=get_year_month()
+            # get_init_songs(year=year,month=month)
+            # shuffle(ply.display())
+            pass
     return {
         'total': ply.len(),
         'playlist':ply.display()
